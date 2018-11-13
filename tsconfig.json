@@ -13,6 +13,11 @@
         "allowSyntheticDefaultImports": true,
         "experimentalDecorators": true,
         "sourceMap": true,
-        "outDir": "out"
+        "outDir": "out",
+        "plugins": [
+            {
+                "name": "tslint-language-service"
+            }
+        ]
     }
 }

@@ -1,12 +1,12 @@
-import {MIVarCreateResponse} from './mi/var';
+import { MIVarCreateResponse } from './mi/var';
 
 export interface VarObjType {
-  varname: string;
-  expression: string;
-  numchild: string;
-  value: string;
-  type: string;
-  isVar: boolean;
+    varname: string;
+    expression: string;
+    numchild: string;
+    value: string;
+    type: string;
+    isVar: boolean;
 }
 
 const variableMap: Map<string, VarObjType[]> = new Map<string, VarObjType[]>();
@@ -37,8 +37,10 @@ export function addVar(frameId: number, threadId: number, depth: number, express
     if (!vars) {
         vars = new Array<VarObjType>();
     }
-    const varobj: VarObjType = {varname: varCreateResponse.name, expression, numchild: varCreateResponse.numchild,
-        value: varCreateResponse.value, type: varCreateResponse.type, isVar};
+    const varobj: VarObjType = {
+        varname: varCreateResponse.name, expression, numchild: varCreateResponse.numchild,
+        value: varCreateResponse.value, type: varCreateResponse.type, isVar,
+    };
     vars.push(varobj);
     variableMap.set(getKey(frameId, threadId, depth), vars);
     return varobj;
@@ -54,7 +56,7 @@ export function removeVar(frameId: number, threadId: number, depth: number, varn
                 break;
             }
         }
-        if (deleteme)  {
+        if (deleteme) {
             vars.splice(vars.indexOf(deleteme), 1);
         }
         variableMap.set(getKey(frameId, threadId, depth), vars);

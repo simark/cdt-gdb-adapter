@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  *********************************************************************/
 import { Readable } from 'stream';
-import { logger } from 'vscode-debugadapter/lib/logger';
+import { Logger } from 'winston';
 import { GDBBackend } from './GDBBackend';
 
 export class MIParser {
@@ -17,7 +17,8 @@ export class MIParser {
     private commandQueue: any = {};
     private waitReady?: (value?: void | PromiseLike<void>) => void;
 
-    constructor(private gdb: GDBBackend) {
+    constructor(private gdb: GDBBackend,
+                private logger: Logger) {
     }
 
     public parse(stream: Readable): Promise<void> {
@@ -213,7 +214,7 @@ export class MIParser {
     private handleLogStream() {
         const msg = this.handleCString();
         if (msg) {
-            logger.log(msg);
+            this.logger.info(msg);
         }
     }
 
@@ -232,14 +233,14 @@ export class MIParser {
 
         switch (c) {
             case '^':
-                logger.verbose('GDB result: ' + this.restOfLine());
+                this.logger.verbose('adapter <-- gdb: ' + this.restOfLine());
                 const command = this.commandQueue[token];
                 if (command) {
                     const asyncResult = this.handleAsyncOutput();
                     command(asyncResult);
                     delete this.commandQueue[token];
                 } else {
-                    logger.error('GDB response with no command: ' + token);
+                    this.logger.error('GDB response with no command: ' + token);
                 }
                 break;
             case '~':
@@ -251,10 +252,10 @@ export class MIParser {
                 break;
             case '=':
                 // TODO: notify
-                logger.verbose('GDB notify: ' + this.restOfLine());
+                this.logger.verbose('adapter <-- gdb: =' + this.restOfLine());
                 break;
             case '*':
-                logger.verbose('GDB async: ' + this.restOfLine());
+                this.logger.verbose('adapter <-- gdb: *' + this.restOfLine());
                 const result = this.handleAsyncOutput();
                 this.gdb.emit('async', result);
                 break;

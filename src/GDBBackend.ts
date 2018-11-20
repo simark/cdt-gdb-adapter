@@ -10,7 +10,7 @@
 import { spawn } from 'child_process';
 import * as events from 'events';
 import { Writable } from 'stream';
-import { logger } from 'vscode-debugadapter/lib/logger';
+import { Logger } from 'winston';
 import { AttachRequestArguments, LaunchRequestArguments } from './GDBDebugSession';
 import { MIParser } from './MIParser';
 
@@ -42,9 +42,14 @@ export declare interface GDBBackend {
 }
 
 export class GDBBackend extends events.EventEmitter {
-    private parser = new MIParser(this);
+    private parser: MIParser;
     private out?: Writable;
     private token = 0;
+
+    constructor(private logger: Logger) {
+        super();
+        this.parser = new MIParser(this, this.logger);
+    }
 
     public launch(args: LaunchRequestArguments) {
         const gdb = args.gdb ? args.gdb : 'gdb';
@@ -62,7 +67,7 @@ export class GDBBackend extends events.EventEmitter {
 
     public sendCommand<T>(command: string): Promise<T> {
         const token = this.nextToken();
-        logger.verbose(`GDB command: ${token} ${command}`);
+        this.logger.verbose(`adapter --> gdb: ${token} ${command}`);
         return new Promise<T>((resolve, reject) => {
             if (this.out) {
                 this.parser.queueCommand(token, result => {

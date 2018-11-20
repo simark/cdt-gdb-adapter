@@ -19,7 +19,7 @@ let dc: DebugClient;
 const emptyProgram = path.join(__dirname, '..', '..', 'src', 'integration-tests', 'test-programs', 'empty');
 
 before(function() {
-    let args: string = getExecPath();
+    let args: string = `${getExecPath()} --log-file gdb-debug.log --log-verbose`;
     if (process.env.INSPECT_DEBUG_ADAPTER) {
         args = '--inspect-brk ' + args;
     }
@@ -43,7 +43,6 @@ describe('launch', function() {
 
     it('can launch and hit a breakpoint', async function() {
         await dc.launchRequest({
-            verbose: true,
             program: emptyProgram,
         } as any);
 
@@ -51,7 +50,7 @@ describe('launch', function() {
             source: { path: 'empty.c' },
             breakpoints: [{
                 line: 3,
-            }]
+            }],
         });
         await dc.configurationDoneRequest({});
         await dc.assertStoppedLocation('breakpoint', {});

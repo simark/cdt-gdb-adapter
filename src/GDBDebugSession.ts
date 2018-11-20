@@ -8,13 +8,14 @@
  * SPDX-License-Identifier: EPL-2.0
  *********************************************************************/
 import * as path from 'path';
-import { logger } from 'vscode-debugadapter/lib/logger';
 import {
-    Handles, InitializedEvent, Logger, LoggingDebugSession, OutputEvent, Scope, Source, StackFrame,
-    StoppedEvent, TerminatedEvent, Thread,
+    DebugSession, Handles, InitializedEvent, OutputEvent, Scope, Source,
+    StackFrame, StoppedEvent, TerminatedEvent, Thread,
 } from 'vscode-debugadapter/lib/main';
 import { DebugProtocol } from 'vscode-debugprotocol/lib/debugProtocol';
+import * as winston from 'winston';
 import { GDBBackend } from './GDBBackend';
+import { configureLogger } from './logging';
 import { sendBreakDelete, sendBreakInsert, sendBreakList } from './mi/breakpoint';
 import * as exec from './mi/exec';
 import { sendStackInfoDepth, sendStackListFramesRequest, sendStackListVariables } from './mi/stack';
@@ -23,19 +24,24 @@ import { sendThreadInfoRequest } from './mi/thread';
 import { sendVarCreate, sendVarDelete, sendVarListChildren, sendVarUpdate } from './mi/var';
 import * as varMgr from './varManager';
 
-export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
+export interface CommonLaunchAndAttachArguments extends DebugProtocol.LaunchRequestArguments {
     gdb?: string;
     program: string;
-    arguments?: string;
-    target: string;
-    verbose?: boolean;
+
+    // If set, log to this file.
+    logFile?: string;
+
+    // If true, log all DAP and MI communications to the log file.
+    logVerbose?: boolean;
 }
 
-export interface AttachRequestArguments extends DebugProtocol.LaunchRequestArguments {
-    gdb?: string;
-    program: string;
+export interface LaunchRequestArguments extends CommonLaunchAndAttachArguments {
+    arguments?: string;
+    target: string;
+}
+
+export interface AttachRequestArguments extends CommonLaunchAndAttachArguments {
     processId: string;
-    verbose?: boolean;
 }
 
 export interface FrameReference {
@@ -55,15 +61,39 @@ export interface ObjectVariableReference {
 
 export type VariableReference = FrameVariableReference | ObjectVariableReference;
 
-export class GDBDebugSession extends LoggingDebugSession {
-    private gdb: GDBBackend = new GDBBackend();
+export class GDBDebugSession extends DebugSession {
+    private gdb: GDBBackend;
     private isAttach = false;
     private isRunning = false;
     private frameHandles = new Handles<FrameReference>();
     private variableHandles = new Handles<VariableReference>();
 
-    constructor() {
-        super('gdb-debug.log');
+    constructor(private logger: winston.Logger) {
+        super();
+        this.gdb = new GDBBackend(this.logger);
+    }
+
+    // Override some DebugSession methods to add logging.
+    protected dispatchRequest(request: DebugProtocol.Request): void {
+        this.logger.verbose(`client --> adapter: ${JSON.stringify(request)}`);
+
+        super.dispatchRequest(request);
+    }
+
+    public sendEvent(event: DebugProtocol.Event): void {
+        this.logger.verbose(`adapter --> client: ${JSON.stringify(event)}`);
+        super.sendEvent(event);
+    }
+
+    public sendRequest(command: string, args: any, timeout: number,
+                       cb: (response: DebugProtocol.Response) => void): void {
+        this.logger.verbose(`adapter --> client: ${JSON.stringify(command)} ${JSON.stringify(args)}`);
+        super.sendRequest(command, args, timeout, cb);
+    }
+
+    public sendResponse(response: DebugProtocol.Response): void {
+        this.logger.verbose(`adapter --> client: ${JSON.stringify(response)}`);
+        super.sendResponse(response);
     }
 
     protected initializeRequest(response: DebugProtocol.InitializeResponse,
@@ -75,7 +105,9 @@ export class GDBDebugSession extends LoggingDebugSession {
 
     protected async attachRequest(response: DebugProtocol.AttachResponse, args: AttachRequestArguments): Promise<void> {
         try {
-            logger.setup(args.verbose ? Logger.LogLevel.Verbose : Logger.LogLevel.Warn, false);
+            if (args.logFile) {
+                configureLogger(this.logger, args.logFile, !!args.logVerbose);
+            }
 
             this.isAttach = true;
 
@@ -99,7 +131,9 @@ export class GDBDebugSession extends LoggingDebugSession {
 
     protected async launchRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments): Promise<void> {
         try {
-            logger.setup(args.verbose ? Logger.LogLevel.Verbose : Logger.LogLevel.Warn, false);
+            if (args.logFile) {
+                configureLogger(this.logger, args.logFile, !!args.logVerbose);
+            }
 
             this.gdb.on('consoleStreamOutput', (output, category) => {
                 this.sendEvent(new OutputEvent(output, category));
@@ -560,7 +594,7 @@ export class GDBDebugSession extends LoggingDebugSession {
                 this.sendStoppedEvent('step', parseInt(result['thread-id'], 10));
                 break;
             default:
-                logger.warn('GDB unhandled stop: ' + JSON.stringify(result));
+                this.logger.warn('GDB unhandled stop: ' + JSON.stringify(result));
         }
     }
 
@@ -573,7 +607,7 @@ export class GDBDebugSession extends LoggingDebugSession {
                 this.handleGDBStopped(result);
                 break;
             default:
-                logger.warn('GDB unhandled async: ' + JSON.stringify(result));
+                this.logger.warn('GDB unhandled async: ' + JSON.stringify(result));
         }
     }
 }

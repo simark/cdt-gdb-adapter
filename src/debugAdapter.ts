@@ -7,12 +7,37 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *********************************************************************/
-import * as process from 'process';
-import { logger } from 'vscode-debugadapter/lib/logger';
+import * as yargs from 'yargs';
 import { GDBDebugSession } from './GDBDebugSession';
+import { configureLogger, createLogger } from './logging';
+
+yargs.strict()
+    .option('log-file', {
+        describe: 'Log communications (DAP and MI) to the specified file',
+        type: 'string',
+    })
+    .option('log-verbose', {
+        describe: 'Increase logging verbosity (only relevant if --log-file is used)',
+        type: 'boolean',
+        default: false,
+    });
+
+const args = yargs.parse();
+const logger = createLogger();
+
+if (args.logFile) {
+    configureLogger(logger, args.logFile, args.logVerbose);
+}
+
+const session = new GDBDebugSession(logger);
+
+process.on('SIGTERM', () => {
+    logger.info('Caught SIGTERM');
+    session.shutdown();
+});
 
 process.on('uncaughtException', (err: any) => {
     logger.error(JSON.stringify(err));
 });
 
-GDBDebugSession.run(GDBDebugSession);
+session.start(process.stdin, process.stdout);

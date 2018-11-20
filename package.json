@@ -22,12 +22,15 @@
   },
   "homepage": "https://github.com/eclipse-cdt/cdt-gdb-adapter#readme",
   "dependencies": {
-    "vscode-debugadapter": "^1.32.1"
+    "vscode-debugadapter": "^1.32.1",
+    "winston": "^3.1.0",
+    "yargs": "^12.0.5"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",
     "@types/mocha": "^5.2.5",
     "@types/node": "^10.12.2",
+    "@types/yargs": "^12.0.1",
     "chai": "^4.2.0",
     "mocha": "^5.2.0",
     "ts-loader": "^5.3.0",

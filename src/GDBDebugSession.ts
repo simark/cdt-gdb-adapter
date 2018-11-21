@@ -125,7 +125,7 @@ export class GDBDebugSession extends DebugSession {
             this.sendEvent(new InitializedEvent());
             this.sendResponse(response);
         } catch (err) {
-            this.sendErrorResponse(response, 1, err);
+            this.sendErrorResponse(response, 1, err.message);
         }
     }
 
@@ -151,7 +151,7 @@ export class GDBDebugSession extends DebugSession {
             this.sendEvent(new InitializedEvent());
             this.sendResponse(response);
         } catch (err) {
-            this.sendErrorResponse(response, 1, err);
+            this.sendErrorResponse(response, 1, err.message);
         }
     }
 
@@ -212,7 +212,7 @@ export class GDBDebugSession extends DebugSession {
 
             this.sendResponse(response);
         } catch (err) {
-            this.sendErrorResponse(response, 1, err);
+            this.sendErrorResponse(response, 1, err.message);
         }
     }
 
@@ -227,7 +227,7 @@ export class GDBDebugSession extends DebugSession {
             this.isRunning = true;
             this.sendResponse(response);
         } catch (err) {
-            this.sendErrorResponse(response, 100, err);
+            this.sendErrorResponse(response, 100, err.message);
         }
     }
 
@@ -251,7 +251,7 @@ export class GDBDebugSession extends DebugSession {
 
             this.sendResponse(response);
         } catch (err) {
-            this.sendErrorResponse(response, 1, err);
+            this.sendErrorResponse(response, 1, err.message);
         }
     }
 
@@ -288,7 +288,7 @@ export class GDBDebugSession extends DebugSession {
 
             this.sendResponse(response);
         } catch (err) {
-            this.sendErrorResponse(response, 1, err);
+            this.sendErrorResponse(response, 1, err.message);
         }
     }
 
@@ -298,7 +298,7 @@ export class GDBDebugSession extends DebugSession {
             await exec.sendExecNext(this.gdb);
             this.sendResponse(response);
         } catch (err) {
-            this.sendErrorResponse(response, 1, err);
+            this.sendErrorResponse(response, 1, err.message);
         }
     }
 
@@ -308,7 +308,7 @@ export class GDBDebugSession extends DebugSession {
             await exec.sendExecStep(this.gdb);
             this.sendResponse(response);
         } catch (err) {
-            this.sendErrorResponse(response, 1, err);
+            this.sendErrorResponse(response, 1, err.message);
         }
     }
 
@@ -318,7 +318,7 @@ export class GDBDebugSession extends DebugSession {
             await exec.sendExecFinish(this.gdb);
             this.sendResponse(response);
         } catch (err) {
-            this.sendErrorResponse(response, 1, err);
+            this.sendErrorResponse(response, 1, err.message);
         }
     }
 
@@ -328,7 +328,7 @@ export class GDBDebugSession extends DebugSession {
             await exec.sendExecContinue(this.gdb);
             this.sendResponse(response);
         } catch (err) {
-            this.sendErrorResponse(response, 1, err);
+            this.sendErrorResponse(response, 1, err.message);
         }
     }
 
@@ -491,7 +491,7 @@ export class GDBDebugSession extends DebugSession {
             }
             this.sendResponse(response);
         } catch (err) {
-            this.sendErrorResponse(response, 1, err);
+            this.sendErrorResponse(response, 1, err.message);
         }
     }
 
@@ -560,7 +560,7 @@ export class GDBDebugSession extends DebugSession {
                 }
             }
         } catch (err) {
-            this.sendErrorResponse(response, 1, err);
+            this.sendErrorResponse(response, 1, err.message);
         }
     }
 
@@ -570,7 +570,7 @@ export class GDBDebugSession extends DebugSession {
             await this.gdb.sendGDBExit();
             this.sendResponse(response);
         } catch (err) {
-            this.sendErrorResponse(response, 1, err);
+            this.sendErrorResponse(response, 1, err.message);
         }
     }
 

@@ -8,6 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  *********************************************************************/
 
+import { expect } from 'chai';
 import * as path from 'path';
 import { DebugClient } from 'vscode-debugadapter-testsupport';
 import { getExecPath } from '..';
@@ -35,6 +36,14 @@ after(function() {
     dc.stop();
 });
 
+function ExpectRejectedPromise<T>(p: Promise<T>) {
+    return new Promise((resolve, reject) => {
+        p.then(reject).catch((error) => {
+            resolve(error);
+        });
+    });
+}
+
 describe('launch', function() {
     // Move the timeout out of the way if the adapter is going to be debugged.
     if (process.env.INSPECT_DEBUG_ADAPTER) {
@@ -54,5 +63,21 @@ describe('launch', function() {
         });
         await dc.configurationDoneRequest({});
         await dc.assertStoppedLocation('breakpoint', {});
+    });
+
+    it('reports breakpoint set errors', async function() {
+        await dc.launchRequest({
+            verbose: true,
+            program: emptyProgram,
+        } as any);
+
+        const errorMessage = await ExpectRejectedPromise(dc.setBreakpointsRequest({
+            source: { path: 'prout.c' },
+            breakpoints: [{
+                line: 3,
+            }],
+        })) as any;
+
+        expect(errorMessage.message).eq('No source file named prout.c.');
     });
 });

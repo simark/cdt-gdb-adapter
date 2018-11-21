@@ -378,7 +378,10 @@ export class GDBDebugSession extends DebugSession {
                 if (vars) {
                     for (const varobj of vars) {
                         if (varobj.isVar) {
-                            const vup = await sendVarUpdate(this.gdb, { threadId: frame.threadId, name: varobj.varname });
+                            const vup = await sendVarUpdate(this.gdb, {
+                                threadId: frame.threadId,
+                                name: varobj.varname,
+                            });
                             const update = vup.changelist[0];
                             if (update) {
                                 if (update.in_scope === 'true') {
@@ -389,7 +392,9 @@ export class GDBDebugSession extends DebugSession {
                                         value: update.value,
                                         type: varobj.type,
                                         variablesReference: parseInt(varobj.numchild, 10) > 0
-                                            ? this.variableHandles.create({ type: 'object', varobjName: varobj.varname })
+                                            ? this.variableHandles.create({
+                                                type: 'object', varobjName: varobj.varname,
+                                            })
                                             : 0,
                                     });
                                 } else {
@@ -431,12 +436,18 @@ export class GDBDebugSession extends DebugSession {
                                 value: varCreateResponse.value,
                                 type: variable.type,
                                 variablesReference: parseInt(varCreateResponse.numchild, 10) > 0
-                                    ? this.variableHandles.create({ type: 'object', varobjName: varCreateResponse.name })
+                                    ? this.variableHandles.create({
+                                        type: 'object',
+                                        varobjName: varCreateResponse.name,
+                                    })
                                     : 0,
                             });
                             varMgr.addVar(frame.frameId, frame.threadId, depth, variable.name, true, varCreateResponse);
                         } else {
-                            const vup = await sendVarUpdate(this.gdb, { threadId: frame.threadId, name: varobj.varname });
+                            const vup = await sendVarUpdate(this.gdb, {
+                                threadId: frame.threadId,
+                                name: varobj.varname,
+                            });
                             const update = vup.changelist[0];
                             if (update) {
                                 if (update.in_scope === 'true') {
@@ -447,8 +458,9 @@ export class GDBDebugSession extends DebugSession {
                                         value: update.value,
                                         type: varobj.type,
                                         variablesReference: parseInt(varobj.numchild, 10) > 0
-                                            ? this.variableHandles.create({ type: 'object', varobjName: varobj.varname })
-                                            : 0,
+                                            ? this.variableHandles.create({
+                                                type: 'object', varobjName: varobj.varname,
+                                            }) : 0,
                                     });
                                 } else {
                                     varMgr.removeVar(frame.frameId, frame.threadId, depth, varobj.varname);
@@ -477,7 +489,10 @@ export class GDBDebugSession extends DebugSession {
                 }
 
             } else if (ref.type === 'object') {
-                const children = await sendVarListChildren(this.gdb, { name: ref.varobjName, printValues: 'all-values' });
+                const children = await sendVarListChildren(this.gdb, {
+                    name: ref.varobjName,
+                    printValues: 'all-values',
+                });
                 for (const child of children.children) {
                     variables.push({
                         name: child.exp,

@@ -21,11 +21,11 @@ export class MIParser {
     }
 
     public parse(stream: Readable): Promise<void> {
-        return new Promise((resolve) => {
+        return new Promise(resolve => {
             this.waitReady = resolve;
             const lineRegex = /(.*)(\r?\n)/;
             let buff = '';
-            stream.on('data', (chunk) => {
+            stream.on('data', chunk => {
                 buff += chunk.toString();
                 let regexArray = lineRegex.exec(buff);
                 while (regexArray) {

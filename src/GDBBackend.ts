@@ -65,7 +65,7 @@ export class GDBBackend extends events.EventEmitter {
         logger.verbose(`GDB command: ${token} ${command}`);
         return new Promise<T>((resolve, reject) => {
             if (this.out) {
-                this.parser.queueCommand(token, (result) => {
+                this.parser.queueCommand(token, result => {
                     switch (result._class) {
                         case 'done':
                         case 'running':

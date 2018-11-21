@@ -83,7 +83,7 @@ export class GDBDebugSession extends LoggingDebugSession {
                 this.sendEvent(new OutputEvent(output, category));
             });
 
-            this.gdb.on('async', (result) => this.handleGDBAsync(result));
+            this.gdb.on('async', result => this.handleGDBAsync(result));
 
             await this.gdb.attach(args);
 
@@ -105,7 +105,7 @@ export class GDBDebugSession extends LoggingDebugSession {
                 this.sendEvent(new OutputEvent(output, category));
             });
 
-            this.gdb.on('async', (result) => this.handleGDBAsync(result));
+            this.gdb.on('async', result => this.handleGDBAsync(result));
 
             await this.gdb.launch(args);
 
@@ -136,15 +136,15 @@ export class GDBDebugSession extends LoggingDebugSession {
             const actual = new Array<DebugProtocol.Breakpoint>();
 
             const result = await sendBreakList(this.gdb);
-            result.BreakpointTable.body.forEach((gdbbp) => {
+            result.BreakpointTable.body.forEach(gdbbp => {
                 if (gdbbp.fullname === file && gdbbp.line) {
                     // TODO probably need more through checks than just line number
                     const line = parseInt(gdbbp.line, 10);
-                    if (!breakpoints.find((vsbp) => vsbp.line === line)) {
+                    if (!breakpoints.find(vsbp => vsbp.line === line)) {
                         deletes.push(gdbbp.number);
                     }
 
-                    inserts = inserts.filter((vsbp) => {
+                    inserts = inserts.filter(vsbp => {
                         if (vsbp.line !== line) {
                             return true;
                         } else {
@@ -207,7 +207,7 @@ export class GDBDebugSession extends LoggingDebugSession {
             }
 
             const result = await sendThreadInfoRequest(this.gdb, {});
-            const threads = result.threads.map((thread) => {
+            const threads = result.threads.map(thread => {
                 return new Thread(parseInt(thread.id, 10), thread.name ? thread.name : thread.id);
             });
 
@@ -231,7 +231,7 @@ export class GDBDebugSession extends LoggingDebugSession {
             const highFrame = lowFrame + levels - 1;
             const listResult = await sendStackListFramesRequest(this.gdb, { lowFrame, highFrame });
 
-            const stack = listResult.stack.map((frame) => {
+            const stack = listResult.stack.map(frame => {
                 let source;
                 if (frame.fullname) {
                     source = new Source(path.basename(frame.file || frame.fullname), frame.fullname);
